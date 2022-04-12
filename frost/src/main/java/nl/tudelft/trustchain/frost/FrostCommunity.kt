@@ -89,6 +89,15 @@ class FrostCommunity(private val context: Context,
         return key?.toByteArray()
     }
 
+    fun getSignersWithKeys(): String{
+        var result = ""
+        for (signer in this.signers){
+            val element = "ip: ${signer.ip} - key: ${signer.pubkey}"
+            result = "$result \n $element"
+        }
+        return result
+    }
+
     fun createSigner(threshold: Int, sendBack: Boolean) {
         if (!signerInList(myPeer.address.toString())) {
             Log.i("FROST", "${myPeer.address} creating own signer")

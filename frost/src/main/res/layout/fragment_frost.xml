@@ -121,7 +121,7 @@
         android:layout_marginTop="150dp"
         android:backgroundTint="@color/frost"
         android:fontFamily="sans-serif"
-        android:text="Refresh Acks"/>
+        android:text="Refresh Signers"/>
 
     <Button
         android:id="@+id/button4"

@@ -72,10 +72,9 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
         // view who sent key shares
         button3.setOnClickListener {
             changeText(text_button_3, "")
-            val acks = readFile(this.context, "acks.txt")
-            val text = "$acks"
-            Log.i("FROST", text)
-            changeText(text_button_3, "Received acks: \n $text")
+            val signers = getFrostCommunity().getSignersWithKeys()
+            Log.i("FROST", signers)
+            changeText(text_button_3, "Received signers/keys: \n $signers")
         }
         // view who acked my key shares
         button4.setOnClickListener {
