@@ -54,7 +54,8 @@
         android:id="@+id/text_button_3"
         android:textColor="@color/white"
         android:layout_width="150dp"
-        android:layout_height="wrap_content"
+        android:layout_height="250dp"
+        android:scrollbars="vertical"
         android:text=""
         android:fontFamily="sans-serif"
         android:layout_marginLeft="10dp"
@@ -68,7 +69,7 @@
         android:id="@+id/text_button_4"
         android:textColor="@color/white"
         android:layout_width="150dp"
-        android:layout_height="wrap_content"
+        android:layout_height="250dp"
         android:text=""
         android:fontFamily="sans-serif"
         android:layout_marginLeft="190dp"
@@ -76,16 +77,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <TextView
-        android:id="@+id/text_refresh"
+        android:id="@+id/text_button_5"
         android:textColor="@color/white"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:text=""
         android:fontFamily="sans-serif"
-        android:layout_marginTop="350dp"
+        android:layout_marginTop="550dp"
         android:layout_marginLeft="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -97,52 +98,52 @@
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
         android:layout_marginLeft="10dp"
+        android:layout_marginTop="50dp"
         android:backgroundTint="@color/frost"
-        android:text="Say hello"
-        android:fontFamily="sans-serif"/>
+        android:fontFamily="sans-serif"
+        android:text="Join FROST"/>
     <Button
         android:id="@+id/button2"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
         android:layout_marginLeft="190dp"
+        android:layout_marginTop="50dp"
         android:backgroundTint="@color/frost"
-        android:text="Button2"
-        android:fontFamily="sans-serif"/>
+        android:fontFamily="sans-serif"
+        android:text="Send Shares"/>
     <Button
         android:id="@+id/button3"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
         android:layout_marginLeft="10dp"
+        android:layout_marginTop="150dp"
         android:backgroundTint="@color/frost"
-        android:text="Button3"
-        android:fontFamily="sans-serif"/>
+        android:fontFamily="sans-serif"
+        android:text="Refresh Signers"/>
 
     <Button
         android:id="@+id/button4"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="150dp"
         android:layout_marginLeft="190dp"
+        android:layout_marginTop="150dp"
         android:backgroundTint="@color/frost"
-        android:text="Button4"
-        android:fontFamily="sans-serif"/>
+        android:fontFamily="sans-serif"
+        android:text="Referesh Shares"/>
 
     <Button
-        android:id="@+id/refresh"
+        android:id="@+id/button5"
         style="@style/Widget.AppCompat.Button.Colored"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="300dp"
+        android:layout_marginTop="500dp"
         android:layout_marginLeft="100dp"
         android:backgroundTint="@color/frost"
-        android:text="refresh"
+        android:text="Shares received"
         android:fontFamily="sans-serif"/>
 
 </RelativeLayout>

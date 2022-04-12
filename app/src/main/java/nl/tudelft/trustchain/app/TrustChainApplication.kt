@@ -6,6 +6,7 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.preference.PreferenceManager
+import bitcoin.FrostSecret
 import com.example.musicdao.ipv8.MusicCommunity
 import com.squareup.sqldelight.android.AndroidSqliteDriver
 import com.squareup.sqldelight.db.SqlDriver
@@ -281,7 +282,7 @@ class TrustChainApplication : Application() {
     private fun createFrostCommunity(): OverlayConfiguration<FrostCommunity> {
         val randomWalk = RandomWalk.Factory()
         return OverlayConfiguration(
-            FrostCommunity.Factory(this),
+            FrostCommunity.Factory(this, mutableListOf(), mutableListOf(), FrostSecret()),
             listOf(randomWalk)
         )
     }

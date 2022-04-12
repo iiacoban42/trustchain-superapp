@@ -1,12 +1,12 @@
 package nl.tudelft.trustchain.frost
 
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import bitcoin.NativeSecp256k1
 import kotlinx.android.synthetic.main.fragment_frost.*
 import nl.tudelft.trustchain.common.ui.BaseFragment
 import nl.tudelft.trustchain.common.util.viewBinding
@@ -23,8 +23,10 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        text_button_3.movementMethod = ScrollingMovementMethod()
         initClickListeners()
         writeToFile(this.context, "acks.txt", "")
+        writeToFile(this.context, "received_shares.txt", "")
     }
 
     override fun onCreateView(
@@ -35,48 +37,53 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
         return inflater.inflate(R.layout.fragment_frost, container, false)
     }
 
-
+    /**
+     * Utility method for changing the text inside a textView.
+     */
     private fun changeText(textView: TextView, text: String){
         textView.text = text
     }
 
-    private fun sayHelloToCommunity(){
-        Log.i("FROST", "Key distribution started")
-
-        val message = "hello"
-
-        writeToFile(this.context, "key_share.txt", message)
-        readFile(this.context,"key_share.txt")
-
-        getFrostCommunity().distributeKey(message.toByteArray())
-    }
-
+    /**
+     * Initiate the click listeners for the buttons.
+     */
     private fun initClickListeners() {
 
+        // create signer
         button1.setOnClickListener {
-            changeText(text_button_1, "Press \"REFRESH\" to check received acks")
-            changeText(text_refresh, "Received acks:")
+            changeText(text_button_1, "Press \"REFRESH\" to check received acks or shares")
+            changeText(text_button_3, "")
+            changeText(text_button_4, "")
             writeToFile(this.context, "acks.txt", "")
-//            changeText(text_button_1, NativeSecp256k1.a())
-            sayHelloToCommunity()
+            writeToFile(this.context, "received_shares.txt", "")
+            getFrostCommunity().createSigner(THRESHOLD, false)
         }
+        // distribute shares
         button2.setOnClickListener {
             changeText(text_button_2, "")
-            changeText(text_button_2, NativeSecp256k1.a())
+            getFrostCommunity().createShares()
         }
+        // view who sent key shares
         button3.setOnClickListener {
             changeText(text_button_3, "")
-            changeText(text_button_3, NativeSecp256k1.a())
+            val signers = getFrostCommunity().getSignersWithKeys()
+            Log.i("FROST", signers)
+            changeText(text_button_3, "Known signers/keys: \n $signers")
         }
+        // view who acked my key shares
         button4.setOnClickListener {
             changeText(text_button_4, "")
-            changeText(text_button_4, NativeSecp256k1.a())
-        }
-        refresh.setOnClickListener {
-            val acks = readFile(this.context, "acks.txt")
-            var text = "$acks"
+            val shares = readFile(this.context, "received_shares.txt")
+            val text = "$shares"
             Log.i("FROST", text)
-            changeText(text_refresh, "Received acks: \n $text")
+            changeText(text_button_4, "Received shares from: \n $text")
+        }
+        // call receive frost
+        button5.setOnClickListener {
+            Log.i("FROST", "FROST received")
+            getFrostCommunity().receiveFrost()
+            changeText(text_button_5, "FrostDone")
+
         }
     }
 }
