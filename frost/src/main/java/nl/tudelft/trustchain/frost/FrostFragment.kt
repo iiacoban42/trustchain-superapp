@@ -58,7 +58,8 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
         // create signer
         button1.setOnClickListener {
             changeText(text_button_1, "Press \"REFRESH\" to check received acks or shares")
-            changeText(text_refresh, "")
+            changeText(text_button_3, "")
+            changeText(text_button_4, "")
             writeToFile(this.context, "acks.txt", "")
             writeToFile(this.context, "received_shares.txt", "")
             getFrostCommunity().createSigner(THRESHOLD, false)
@@ -74,7 +75,7 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
             val acks = readFile(this.context, "acks.txt")
             val text = "$acks"
             Log.i("FROST", text)
-            changeText(text_refresh, "Received acks: \n $text")
+            changeText(text_button_3, "Received acks: \n $text")
         }
         // view who acked my key shares
         button4.setOnClickListener {
@@ -82,13 +83,13 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
             val shares = readFile(this.context, "received_shares.txt")
             val text = "$shares"
             Log.i("FROST", text)
-            changeText(text_refresh, "Received shares from: \n $text")
+            changeText(text_button_4, "Received shares from: \n $text")
         }
         // call receive frost
-        refresh.setOnClickListener {
+        button5.setOnClickListener {
             Log.i("FROST", "FROST received")
             getFrostCommunity().receiveFrost()
-            changeText(text_refresh, "FrostDone")
+            changeText(text_button_5, "FrostDone")
 
         }
     }
