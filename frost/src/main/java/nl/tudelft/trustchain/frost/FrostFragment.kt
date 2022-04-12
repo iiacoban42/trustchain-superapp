@@ -1,13 +1,12 @@
 package nl.tudelft.trustchain.frost
 
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import bitcoin.NativeSecp256k1
-import bitcoin.NativeSecp256k1.receiveFrost
 import kotlinx.android.synthetic.main.fragment_frost.*
 import nl.tudelft.trustchain.common.ui.BaseFragment
 import nl.tudelft.trustchain.common.util.viewBinding
@@ -24,6 +23,7 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        text_button_3.movementMethod = ScrollingMovementMethod()
         initClickListeners()
         writeToFile(this.context, "acks.txt", "")
         writeToFile(this.context, "received_shares.txt", "")
@@ -74,7 +74,7 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
             changeText(text_button_3, "")
             val signers = getFrostCommunity().getSignersWithKeys()
             Log.i("FROST", signers)
-            changeText(text_button_3, "Received signers/keys: \n $signers")
+            changeText(text_button_3, "Known signers/keys: \n $signers")
         }
         // view who acked my key shares
         button4.setOnClickListener {
