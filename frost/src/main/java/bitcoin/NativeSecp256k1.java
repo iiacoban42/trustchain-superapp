@@ -577,19 +577,8 @@ public class NativeSecp256k1 {
     private static native byte[] sign_message_third(byte[] sig, FrostSigner[] signers, FrostSession session, long context);
     private static native boolean verify_frost(byte[] sig, byte[] msg, byte[] key, long ctx_l);
 
-    public static String hi(){
-        return "hello";
-    }
 
-    public static FrostSigner genKey(int threshold){
-        FrostSigner signer = new FrostSigner(threshold);
-        FrostSecret secret = new FrostSecret();
-        NativeSecp256k1.generateKey(secret, signer);
-        // send signer
-        return signer;
-    }
-
-    public static String a(){
+    public static String smokeTest(){
         final int numberOfKeys = 5;
         int threshold = 3;
         byte[][] publicKeys = new byte[numberOfKeys][];
