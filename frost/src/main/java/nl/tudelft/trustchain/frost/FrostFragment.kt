@@ -37,22 +37,16 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
         return inflater.inflate(R.layout.fragment_frost, container, false)
     }
 
-
+    /**
+     * Utility method for changing the text inside a textView.
+     */
     private fun changeText(textView: TextView, text: String){
         textView.text = text
     }
 
-    private fun sayHelloToCommunity(){
-        Log.i("FROST", "Key distribution started")
-
-        val message = "hello"
-
-        writeToFile(this.context, "key_share.txt", message)
-        readFile(this.context,"key_share.txt")
-
-        getFrostCommunity().distributeShares(message.toByteArray())
-    }
-
+    /**
+     * Initiate the click listeners for the buttons.
+     */
     private fun initClickListeners() {
 
         // create signer
