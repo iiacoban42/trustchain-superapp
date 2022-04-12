@@ -41,77 +41,34 @@ class FrostCommunity(private val context: Context,
         }
     }
 
-    private fun onDistributeShares(packet: Packet) {
-        Log.i("FROST", "Key packet received $packet")
-        val (peer, payload) = packet.getDecryptedAuthPayload(KeyPacketMessage.Deserializer, myPeer.key as PrivateKey)
-        val keyShare = payload.keyShare
-        val i = getIndexOfSigner(peer.address.ip)
-        this.keyShares.add(i, keyShare)
-
-        val ackBuffer = readFile(this.context,"received_shares.txt")
-        val newBuffer = "$ackBuffer \n ${peer.address}"
-        writeToFile(this.context, "received_shares.txt", newBuffer)
-
-        ackKey(peer, keyShare)
-
-        Log.i("FROST", "Key fragment acked $keyShare")
-
-    }
-
-    private fun ackKey(peer: Peer, keyShare: ByteArray){
-        val ack = serializePacket(
-            MessageId.ACK_KEY,
-            Ack(keyShare),
-            encrypt = true,
-            sign = true,
-            recipient = peer
-        )
-        Log.i("FROST", " ${myPeer.address} sending key ack to ${peer.address}")
-        send(peer, ack)
-    }
-
-    private fun onAckKey(packet: Packet){
-        val (peer, payload) = packet.getDecryptedAuthPayload(Ack.Deserializer, myPeer.key as PrivateKey)
-        Log.i("FROST", "${myPeer.address} acked key ${payload.keyShare} from ${peer.address}")
-        val ackBuffer = readFile(this.context,"acks.txt")
-        val newBuffer = "$ackBuffer \n ${peer.address}"
-        writeToFile(this.context, "acks.txt", newBuffer)
-    }
-
-    private fun saveKeyShare(keyShare: ByteArray){
-        writeToFile(this.context, "key_share.txt", keyShare.toString())
-        Log.i("FROST", "File written ${myPeer.address}")
-    }
-
-    private fun getKeyShare(): ByteArray? {
-        val key = readFile(this.context, "key_share.txt")
-        Log.i("FROST", "LOADED: $key ${myPeer.address}")
-        return key?.toByteArray()
-    }
-
-    fun getSignersWithKeys(): String{
-        var result = ""
-        for (signer in this.signers){
-            val element = "ip: ${signer.ip} - key: ${signer.pubkey.contentToString()}"
-            result = "$result \n\n $element"
-        }
-        return result
-    }
-
+    /**
+     * Create a signer for this user and broadcast it to the network.
+     *
+     * @param threshold: the threshold for the Schnorr signature
+     * @param sendBack: boolean used to determine if we should send
+     *                  back the signer that this user creates
+     */
     fun createSigner(threshold: Int, sendBack: Boolean) {
+        // set own ip address
         myPeer.address = myEstimatedWan
+        // only create a new signer if there is not already one
         if (!signerInList(myPeer.address.toString())) {
             Log.i("FROST", "${myPeer.address} creating own signer")
             // add self as signer
             val signer = FrostSigner(threshold)
             val secret = FrostSecret()
+            // generate the public and private keys
             NativeSecp256k1.generateKey(secret, signer)
             this.secret = secret
             signer.ip = myPeer.address.toString()
+            // add the newly created signer to the list
+            // (so we don't create new ones for this same user in the future)
             this.signers.add(signer)
 
+            // loop over all peers except this user
             for (peer in getPeers()) {
                 if (peer != myPeer) {
+                    // serialize the packet so ipv8 can send it
                     val packet = serializePacket(
                         MessageId.SEND_SIGNER,
                         FrostSignerPacket(
@@ -125,11 +82,13 @@ class FrostCommunity(private val context: Context,
                         sign = true,
                         recipient = peer
                     )
+                    // when sendBack is true, send the message to the peer
                     if (sendBack){
                         Log.i("FROST", "${myPeer.address} sending signer to ${peer.address}")
                         send(peer, packet)
                     }
-
+                    // when sendBack is false, send the message only if we haven't received
+                    // a signer from the peer we're trying to send to
                     else if (!signerInList(peer.address.toString())) {
                         Log.i("FROST", "${myPeer.address} sending signer to ${peer.address}")
                         send(peer, packet)
@@ -139,43 +98,10 @@ class FrostCommunity(private val context: Context,
         }
     }
 
-    private fun signerInList(ip: String): Boolean {
-        for (signer in signers){
-            if(ip == signer.ip){
-                return true
-            }
-        }
-        return false
-    }
-
-    private fun getIndexOfSigner(ip: String): Int{
-        var i = -1
-        for (signer in signers){
-            i++
-            if(ip == signer.ip){
-                break
-            }
-        }
-        return i
-    }
-
-    private fun getPeerFromIP(ip: String): Peer?{
-        var peer: Peer? = null
-        for (p in getPeers()){
-            if(p.address.toString() == ip)
-                 peer = p
-        }
-        return peer
-    }
-
-    private fun getPublicKeysFromSigners(): Array<ByteArray>{
-        var keys = mutableListOf<ByteArray>()
-        for (signer in signers){
-            keys.add(signer.pubkey)
-        }
-        return keys.toTypedArray()
-    }
-
+    /**
+     * Pairs with createSigner, but is called when receiving
+     * a message sent by the createSigner function.
+     */
     fun onCreateSigner(packet: Packet) {
         val (peer, payload) = packet.getDecryptedAuthPayload(FrostSignerPacket.Deserializer, myPeer.key as PrivateKey)
         val signer = FrostSigner(
@@ -189,61 +115,199 @@ class FrostCommunity(private val context: Context,
 
         Log.i("FROST", "${myPeer.address} received signer from ${peer.address}")
 
+        // check if we received a signer from an ip that we haven't previously received a signer from
         if(!signerInList(peer.address.toString())){
             Log.i("FROST", "${myPeer.address} signer was unknown, adding to list")
+            // add the signer to the list of known signers
+            // (call this user1, the one who initiated the protocol)
             this.signers.add(signer)
+            // call createSigner to create this user's (user2) signer
+            // and set sendBack to true, to make sure that we also send
+            // the new signer back to user1 and not just
+            // to the other peers who are not in the list yet
             createSigner(THRESHOLD, true)
         }
         else
+            // if we have already received a signer from user1,
+            // log this and move on
             Log.i("FROST", "${myPeer.address} signer was known")
-            createSigner(THRESHOLD, false)
     }
 
+    /**
+     * Creates the shares that need to be distributed to the known signers.
+     */
+    fun createShares(){
+        val i = getIndexOfSigner(myPeer.address.toString())
+        // sort the signers list so that everyone has the same order for the signers
+        this.signers.sort()
+        val res = NativeSecp256k1.sendShares(getPublicKeysFromSigners(), this.secret, this.signers[i])
 
-    fun distributeShares(
+        // create a list of all peers
+        val list = mutableListOf<Peer>()
+        for(signer in this.signers){
+            val peerAddress = signer.ip
+            list.add(getPeerFromIP(peerAddress)!!)
+        }
+
+        // loop over res and distribute the shares
+        for(share in res){
+            // call distributeShares to send the created shares one by one
+            distributeShares(share, list)
+        }
+    }
+
+    /**
+     * Helper function for createShares().
+     * Distributes the key shares created by createShares().
+     */
+    private fun distributeShares(
         keyShare: ByteArray,
         peers: List<Peer>? = null
     ){
+        // input sanity check
         var peerList = peers
         if(peerList == null){
             peerList = getPeers()
         }
 
+        // loop over the peerList (including self) and send each peer this share
         for (peer in peerList) {
-            if(peer == myPeer){
-                saveKeyShare(keyShare)
-            }
-            else{
-                val packet = serializePacket(
-                    MessageId.SEND_KEY,
-                    KeyPacketMessage(keyShare),
-                    encrypt = true,
-                    sign = true,
-                    recipient = peer
-                )
-                Log.i("FROST", "${myPeer.address} sending key share to ${peer.address}")
-                send(peer, packet)
-            }
+            val packet = serializePacket(
+                MessageId.SEND_KEY,
+                KeyPacketMessage(keyShare),
+                encrypt = true,
+                sign = true,
+                recipient = peer
+            )
+            Log.i("FROST", "${myPeer.address} sending key share to ${peer.address}")
+            send(peer, packet)
         }
     }
 
-    fun createShares(){
-        val i = getIndexOfSigner(myPeer.address.toString())
-        this.signers.sort()
-        val res = NativeSecp256k1.sendShares(getPublicKeysFromSigners(), this.secret, this.signers[i])
-        var j = 0
-        for(share in res){
-            val peerAddress = this.signers[j].ip
-            val list = mutableListOf<Peer>()
-            list.add(getPeerFromIP(peerAddress)!!)
-            distributeShares(share, list)
-            j++
-        }
+    /**
+     * Pairs with distributeShares, but is called when receiving
+     * a message sent by the distributeShares function.
+     */
+    private fun onDistributeShares(packet: Packet) {
+        Log.i("FROST", "Key packet received $packet")
+        val (peer, payload) = packet.getDecryptedAuthPayload(KeyPacketMessage.Deserializer, myPeer.key as PrivateKey)
+        val keyShare = payload.keyShare
+        val i = getIndexOfSigner(peer.address.ip)
+
+        // add the received key share to the list of key shares
+        this.keyShares.add(i, keyShare)
+
+        // also add to a local file which is used when printing
+        val ackBuffer = readFile(this.context,"received_shares.txt")
+        val newBuffer = "$ackBuffer \n ${peer.address}"
+        writeToFile(this.context, "received_shares.txt", newBuffer)
+
+        // confirm that the received key share arrived
+        ackKey(peer, keyShare)
+
+        Log.i("FROST", "Key fragment acked $keyShare")
     }
 
+    /**
+     * Function for acknowledging a key,called when receiving
+     * a key share that needs to be acknowledged.
+     */
+    private fun ackKey(peer: Peer, keyShare: ByteArray){
+        val ack = serializePacket(
+            MessageId.ACK_KEY,
+            Ack(keyShare),
+            encrypt = true,
+            sign = true,
+            recipient = peer
+        )
+        Log.i("FROST", " ${myPeer.address} sending key ack to ${peer.address}")
+        send(peer, ack)
+    }
+
+    /**
+     * Pairs with ackKey, but is called when receiving
+     * a message sent by the ackKey function.
+     */
+    private fun onAckKey(packet: Packet){
+        val (peer, payload) = packet.getDecryptedAuthPayload(Ack.Deserializer, myPeer.key as PrivateKey)
+        Log.i("FROST", "${myPeer.address} acked key ${payload.keyShare} from ${peer.address}")
+        val ackBuffer = readFile(this.context,"acks.txt")
+        val newBuffer = "$ackBuffer \n ${peer.address}"
+        writeToFile(this.context, "acks.txt", newBuffer)
+    }
+
+    /**
+     * Call receiveFrost.
+     */
     fun receiveFrost(){
         val i = getIndexOfSigner(myPeer.address.toString())
         NativeSecp256k1.receiveFrost(arrayOf(this.keyShares[i]), this.secret, this.signers.toTypedArray(), i)
+    }
+
+    /**
+     * Utility function for checking if a signer is already
+     * known, by checking if its ip is in the list.
+     */
+    private fun signerInList(ip: String): Boolean {
+        for (signer in signers){
+            if(ip == signer.ip){
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Utility function for getting the list id of the
+     * signer that corresponds to the given ip.
+     */
+    private fun getIndexOfSigner(ip: String): Int{
+        var i = -1
+        for (signer in signers){
+            i++
+            if(ip == signer.ip){
+                break
+            }
+        }
+        return i
+    }
+
+    /**
+     * Utility function for getting the peer
+     * that corresponds to a given ip.
+     */
+    private fun getPeerFromIP(ip: String): Peer?{
+        var peer: Peer? = null
+        for (p in getPeers()){
+            if(p.address.toString() == ip)
+                peer = p
+        }
+        return peer
+    }
+
+    /**
+     * Utility function for getting the list of known
+     * public keys from all known signers
+     */
+    private fun getPublicKeysFromSigners(): Array<ByteArray>{
+        var keys = mutableListOf<ByteArray>()
+        for (signer in signers){
+            keys.add(signer.pubkey)
+        }
+        return keys.toTypedArray()
+    }
+
+    /**
+     * Utility function for getting all the known signers
+     * and their corresponding keys to print on screen.
+     */
+    fun getSignersWithKeys(): String{
+        var result = ""
+        for (signer in this.signers){
+            val element = "ip: ${signer.ip} - key: ${signer.pubkey.contentToString()}"
+            result = "$result \n\n $element"
+        }
+        return result
     }
 
     object MessageId {
