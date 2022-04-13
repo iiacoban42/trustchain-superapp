@@ -137,16 +137,19 @@ class FrostCommunity(private val context: Context,
      * Creates the shares that need to be distributed to the known signers.
      */
     fun createShares(){
-        val i = getIndexOfSigner(myPeer.address.toString())
         // sort the signers list so that everyone has the same order for the signers
         this.signers.sort()
+        val i = getIndexOfSigner(myPeer.address.toString())
+
         val res = NativeSecp256k1.sendShares(getPublicKeysFromSigners(), this.secret, this.signers[i])
 
         // create a list of all peers
         val list = mutableListOf<Peer>()
         for(signer in this.signers){
-            val peerAddress = signer.ip
-            list.add(getPeerFromIP(peerAddress)!!)
+            if( signer != this.signers[i]){
+                val peerAddress = signer.ip
+                list.add(getPeerFromIP(peerAddress)!!)
+            }
         }
 
         // loop over res and distribute the shares
@@ -277,12 +280,18 @@ class FrostCommunity(private val context: Context,
      * that corresponds to a given ip.
      */
     private fun getPeerFromIP(ip: String): Peer?{
-        var peer: Peer? = null
+        Log.i("FROST", " GET PEER ip: $ip ")
+//        var peer: Peer? = null
         for (p in getPeers()){
-            if(p.address.toString() == ip)
-                peer = p
+            Log.i("FROST", "GET PEER p.address: ${p.address} ")
+            if(p.address.toString() == ip){
+                Log.i("FROST", "GET PEER if was true: $ip == ${p.address} ")
+
+                return p
+            }
+//                peer = p
         }
-        return peer
+        return null
     }
 
     /**
