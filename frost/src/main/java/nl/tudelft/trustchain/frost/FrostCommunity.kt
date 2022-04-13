@@ -14,7 +14,7 @@ val THRESHOLD = 2
 
 class FrostCommunity(private val context: Context,
                      private var signers: MutableList<FrostSigner>,
-                     private var keyShares: MutableList<ByteArray>,
+                     private var keyShares: MutableMap<Int, ByteArray>,
                      private var secret: FrostSecret
 ): Community(){
     override val serviceId = "98c1f6342f30528ada9647197f0503d48db9c2fb"
@@ -198,7 +198,7 @@ class FrostCommunity(private val context: Context,
         val i = getIndexOfSigner(peer.address.ip)
 
         // add the received key share to the list of key shares
-        this.keyShares.add(i, keyShare)
+        this.keyShares[i] = keyShare
 
         // also add to a local file which is used when printing
         val ackBuffer = readFile(this.context,"received_shares.txt")
@@ -328,7 +328,7 @@ class FrostCommunity(private val context: Context,
     class Factory(
         private val context: Context,
         private val signers: MutableList<FrostSigner>,
-        private val keyShares: MutableList<ByteArray>,
+        private val keyShares: Map<Int, ByteArray>,
         private val secret: FrostSecret
     ) : Overlay.Factory<FrostCommunity>(FrostCommunity::class.java) {
         override fun create(): FrostCommunity {
