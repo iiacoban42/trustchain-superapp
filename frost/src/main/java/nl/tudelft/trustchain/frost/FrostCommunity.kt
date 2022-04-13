@@ -332,7 +332,7 @@ class FrostCommunity(private val context: Context,
         private val secret: FrostSecret
     ) : Overlay.Factory<FrostCommunity>(FrostCommunity::class.java) {
         override fun create(): FrostCommunity {
-            return FrostCommunity(context, signers, keyShares, secret)
+            return FrostCommunity(context, signers, keyShares as MutableMap<Int, ByteArray>, secret)
         }
     }
 }
