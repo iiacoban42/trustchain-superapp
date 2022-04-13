@@ -10,7 +10,7 @@ import nl.tudelft.ipv8.keyvault.PrivateKey
 import nl.tudelft.ipv8.messaging.Packet
 import kotlin.random.Random
 
-val THRESHOLD = 3
+val THRESHOLD = 2
 
 class FrostCommunity(private val context: Context,
                      private var signers: MutableList<FrostSigner>,
