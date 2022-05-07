@@ -3,6 +3,7 @@ package nl.tudelft.trustchain.frost
 import android.content.Context
 import android.util.Log
 import bitcoin.*
+import bitcoin.Secp256k1Context.*
 import nl.tudelft.ipv8.Community
 import nl.tudelft.ipv8.Overlay
 import nl.tudelft.ipv8.Peer
@@ -28,6 +29,14 @@ class FrostCommunity(private val context: Context,
         super.load()
 
         if (Random.nextInt(0, 1) == 0) initiateWalkingModel()
+    }
+
+    fun getKeyshares(): MutableMap<Int, ByteArray> {
+        return this.keyShares
+    }
+
+    fun getSigners(): MutableList<FrostSigner> {
+        return this.signers
     }
     /**
      * Load / create walking models (feature based and collaborative filtering)
@@ -146,10 +155,10 @@ class FrostCommunity(private val context: Context,
         // create a list of all peers
         val list = mutableListOf<Peer>()
         for(signer in this.signers){
-            if( signer != this.signers[i]){
+//            if( signer != this.signers[i]){
                 val peerAddress = signer.ip
                 list.add(getPeerFromIP(peerAddress)!!)
-            }
+//            }
         }
 
         // loop over res and distribute the shares
@@ -175,6 +184,10 @@ class FrostCommunity(private val context: Context,
 
         // loop over the peerList (including self) and send each peer this share
         for (peer in peerList) {
+            if(peer == myPeer){
+                val i = getIndexOfSigner(myPeer.address.ip)
+                this.keyShares[i] = keyShare
+            }
             val packet = serializePacket(
                 MessageId.SEND_KEY,
                 KeyPacketMessage(keyShare),
@@ -243,8 +256,12 @@ class FrostCommunity(private val context: Context,
      * Call receiveFrost.
      */
     fun receiveFrost(){
-        val i = getIndexOfSigner(myPeer.address.toString())
-        NativeSecp256k1.receiveFrost(arrayOf(this.keyShares[i]), this.secret, this.signers.toTypedArray(), i)
+        val i = getIndexOfSigner(myPeer.address.ip)
+        // check that context is enabled
+        if(isEnabled()){
+
+            NativeSecp256k1.receiveFrost(arrayOf(this.keyShares[i]), this.secret, this.signers.toTypedArray(), i)
+        }
     }
 
     /**
@@ -280,16 +297,16 @@ class FrostCommunity(private val context: Context,
      * that corresponds to a given ip.
      */
     private fun getPeerFromIP(ip: String): Peer?{
+        if (myPeer.address.ip == ip)
+            return myPeer
         Log.i("FROST", " GET PEER ip: $ip ")
-//        var peer: Peer? = null
         for (p in getPeers()){
             Log.i("FROST", "GET PEER p.address: ${p.address} ")
-            if(p.address.toString() == ip){
+            if(p.address.ip == ip){
                 Log.i("FROST", "GET PEER if was true: $ip == ${p.address} ")
 
                 return p
             }
-//                peer = p
         }
         return null
     }
