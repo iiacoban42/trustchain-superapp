@@ -61,7 +61,7 @@ class FrostCommunity(private val context: Context,
         // set own ip address
         myPeer.address = myEstimatedWan
         // only create a new signer if there is not already one
-        if (!signerInList(myPeer.address.toString())) {
+        if (!signerInList(myPeer.address.ip)) {
             Log.i("FROST", "${myPeer.address} creating own signer")
             // add self as signer
             val signer = FrostSigner(threshold)
@@ -69,7 +69,7 @@ class FrostCommunity(private val context: Context,
             // generate the public and private keys
             NativeSecp256k1.generateKey(secret, signer)
             this.secret = secret
-            signer.ip = myPeer.address.toString()
+            signer.ip = myPeer.address.ip
             // add the newly created signer to the list
             // (so we don't create new ones for this same user in the future)
             this.signers.add(signer)
@@ -98,7 +98,7 @@ class FrostCommunity(private val context: Context,
                     }
                     // when sendBack is false, send the message only if we haven't received
                     // a signer from the peer we're trying to send to
-                    else if (!signerInList(peer.address.toString())) {
+                    else if (!signerInList(peer.address.ip)) {
                         Log.i("FROST", "${myPeer.address} sending signer to ${peer.address}")
                         send(peer, packet)
                     }
@@ -120,12 +120,12 @@ class FrostCommunity(private val context: Context,
             payload.vss_hash,
             payload.pubcoeff
         )
-        signer.ip = peer.address.toString()
+        signer.ip = peer.address.ip
 
         Log.i("FROST", "${myPeer.address} received signer from ${peer.address}")
 
         // check if we received a signer from an ip that we haven't previously received a signer from
-        if(!signerInList(peer.address.toString())){
+        if(!signerInList(peer.address.ip)){
             Log.i("FROST", "${myPeer.address} signer was unknown, adding to list")
             // add the signer to the list of known signers
             // (call this user1, the one who initiated the protocol)
@@ -148,7 +148,7 @@ class FrostCommunity(private val context: Context,
     fun createShares(){
         // sort the signers list so that everyone has the same order for the signers
         this.signers.sort()
-        val i = getIndexOfSigner(myPeer.address.toString())
+        val i = getIndexOfSigner(myPeer.address.ip)
 
         val res = NativeSecp256k1.sendShares(getPublicKeysFromSigners(), this.secret, this.signers[i])
 
