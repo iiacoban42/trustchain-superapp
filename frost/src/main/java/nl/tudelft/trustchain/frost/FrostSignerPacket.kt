@@ -14,14 +14,14 @@ class FrostSignerPacket constructor(
     override fun serialize(): ByteArray {
         var serializeCoeff = byteArrayOf()
         for (coeff in pubcoeff) {
-            serializeCoeff += serializeVarLen(coeff)
+            serializeCoeff += coeff
         }
         return serializeVarLen(pubkey) +
             serializeVarLen(pubnonce) +
             serializeVarLen(partial_sig) +
             serializeVarLen(vss_hash) +
-            serializeUShort(pubcoeff.size)+
-            serializeCoeff
+            serializeUShort(pubcoeff.size) +
+            serializeVarLen(serializeCoeff)
     }
 
     companion object Deserializer : Deserializable<FrostSignerPacket> {
@@ -39,16 +39,31 @@ class FrostSignerPacket constructor(
             val (numOfCoeffs, numOfCoeffsSize) = deserializeUShort(buffer, localOffset)
             localOffset += numOfCoeffsSize
 
-            var pubCoeffArray: Array<ByteArray> = emptyArray()
+            val (pubcoeffAll, pubcoeffSize) = deserializeVarLen(buffer, localOffset)
+            localOffset += pubcoeffSize
 
-            for (i in 0 until numOfCoeffs){
-                val (pubCoeff, pubCoeffSize) = deserializeVarLen(buffer, localOffset)
-                localOffset += pubCoeffSize
-                pubCoeffArray = append(pubCoeffArray, pubCoeff)
+            val pubCoeff: MutableList<ByteArray> = mutableListOf()
+
+            var i = 0
+
+            while (i < pubcoeffAll.size-numOfCoeffs+1){
+                val subArr = pubcoeffAll.copyOfRange(i, i+numOfCoeffs)
+                pubCoeff.add(subArr)
+                i += numOfCoeffs
             }
 
+//            var pubCoeffArray: Array<ByteArray> = emptyArray()
+//
+//            for (i in 0 until numOfCoeffs){
+//                val (pubCoeff, pubCoeffSize) = deserializeVarLen(buffer, localOffset)
+//                localOffset += pubCoeffSize
+//                pubCoeffArray = append(pubCoeffArray, pubCoeff)
+//            }
+
+//            val pubcoeff = pubcoeffAll.chunked
+
             return Pair(
-                FrostSignerPacket(pubKey, pubNonce, partialSig, vssHash, pubCoeffArray),
+                FrostSignerPacket(pubKey, pubNonce, partialSig, vssHash, pubCoeff.toTypedArray()),
                 localOffset - offset
             )
         }
