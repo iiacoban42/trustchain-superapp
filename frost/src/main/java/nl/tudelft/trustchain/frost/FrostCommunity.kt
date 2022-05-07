@@ -120,6 +120,18 @@ class FrostCommunity(private val context: Context,
             payload.vss_hash,
             payload.pubcoeff
         )
+
+        Log.i("FROST DESERIALIZER", "pubcoeffarray ${payload.pubcoeff}")
+
+
+        for (arr in payload.pubcoeff) {
+            Log.i("FROST DESERIALIZER", "bytearray ${arr}")
+            for(el in arr) {
+                Log.i("FROST DESERIALIZER", "element ${el}")
+            }
+        }
+
+
         signer.ip = peer.address.ip
 
         Log.i("FROST", "${myPeer.address} received signer from ${peer.address}")

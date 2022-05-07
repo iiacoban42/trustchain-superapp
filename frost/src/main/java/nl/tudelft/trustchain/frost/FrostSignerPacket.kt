@@ -1,5 +1,6 @@
 package nl.tudelft.trustchain.frost
 
+import android.util.Log
 import androidx.core.graphics.component1
 import androidx.core.graphics.component2
 import nl.tudelft.ipv8.messaging.*
@@ -14,14 +15,18 @@ class FrostSignerPacket constructor(
     override fun serialize(): ByteArray {
         var serializeCoeff = byteArrayOf()
         for (coeff in pubcoeff) {
-            serializeCoeff += coeff
+            serializeCoeff += serializeVarLen(coeff)
         }
+        val count = pubcoeff.count()
+        val length = byteArrayOf(count.toByte())
+//        length += pubcoeff.count()
+
         return serializeVarLen(pubkey) +
             serializeVarLen(pubnonce) +
             serializeVarLen(partial_sig) +
             serializeVarLen(vss_hash) +
-            serializeUShort(pubcoeff.size) +
-            serializeVarLen(serializeCoeff)
+            serializeVarLen(length) +
+            serializeCoeff
     }
 
     companion object Deserializer : Deserializable<FrostSignerPacket> {
@@ -36,34 +41,25 @@ class FrostSignerPacket constructor(
             val (vssHash, vssHashSize) = deserializeVarLen(buffer, localOffset)
             localOffset += vssHashSize
 
-            val (numOfCoeffs, numOfCoeffsSize) = deserializeUShort(buffer, localOffset)
+            val (numOfCoeffs, numOfCoeffsSize) = deserializeVarLen(buffer, localOffset)
             localOffset += numOfCoeffsSize
 
-            val (pubcoeffAll, pubcoeffSize) = deserializeVarLen(buffer, localOffset)
-            localOffset += pubcoeffSize
+            var pubCoeffArray: Array<ByteArray> = emptyArray()
 
-            val pubCoeff: MutableList<ByteArray> = mutableListOf()
-
-            var i = 0
-
-            while (i < pubcoeffAll.size-numOfCoeffs+1){
-                val subArr = pubcoeffAll.copyOfRange(i, i+numOfCoeffs)
-                pubCoeff.add(subArr)
-                i += numOfCoeffs
+            for (i in 0 until numOfCoeffs[0].toInt()){
+                val (pubCoeff, pubCoeffSize) = deserializeVarLen(buffer, localOffset)
+                localOffset += pubCoeffSize
+                pubCoeffArray = append(pubCoeffArray, pubCoeff)
+            }
+            for (arr in pubCoeffArray) {
+                Log.i("FROST DESERIALIZER", "pubcoeffarray ${arr}")
+                for(el in arr) {
+                    Log.i("FROST DESERIALIZER", "element ${el}")
+                }
             }
 
-//            var pubCoeffArray: Array<ByteArray> = emptyArray()
-//
-//            for (i in 0 until numOfCoeffs){
-//                val (pubCoeff, pubCoeffSize) = deserializeVarLen(buffer, localOffset)
-//                localOffset += pubCoeffSize
-//                pubCoeffArray = append(pubCoeffArray, pubCoeff)
-//            }
-
-//            val pubcoeff = pubcoeffAll.chunked
-
             return Pair(
-                FrostSignerPacket(pubKey, pubNonce, partialSig, vssHash, pubCoeff.toTypedArray()),
+                FrostSignerPacket(pubKey, pubNonce, partialSig, vssHash, pubCoeffArray),
                 localOffset - offset
             )
         }
