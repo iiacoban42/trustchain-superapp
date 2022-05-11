@@ -46,12 +46,12 @@ android {
         jvmTarget = '1.8'
         allWarningsAsErrors = true
     }
-    externalNativeBuild {
-        cmake {
-            path file('src/main/cpp/CMakeLists.txt')
-            version '3.18.1'
-        }
-    }
+//    externalNativeBuild {
+//        cmake {
+//            path file('src/main/cpp/CMakeLists.txt')
+//            version '3.10.2'
+//        }
+//    }
 
     buildFeatures {
         viewBinding = true
