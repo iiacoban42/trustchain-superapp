@@ -228,12 +228,13 @@ class FrostCommunity(private val context: Context,
 
         // remove duplicates (since we also send the shares to ourselves)
         val splitList = ackBuffer?.split("\n")
-        val list = splitList?.toTypedArray()
+        var list = splitList?.toTypedArray()
+        list = list?.plus("${peer.address}")
         val uniqueList = list?.toSet()?.toList()
         val uniqueBuffer = uniqueList?.joinToString("\n")
 
         if (uniqueBuffer != null) {
-            writeToFile(this.context, "received_shares.txt", "$uniqueBuffer \n ${peer.address}")
+            writeToFile(this.context, "received_shares.txt", "$uniqueBuffer")
         }
 
         // confirm that the received key share arrived
