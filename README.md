@@ -160,7 +160,7 @@ The feature-based models are gossiped along random walks through the network. At
 
 The FROST app aims to integrate the Flexible Round-Optimized Schnorr Threshold Signatures algorithm with the IPv8 overlay. The FROST algorithm is implement in the following [library](https://github.com/OrestisKan/secp256k1-zkp-jni): which is compiled as an `.so` file and accessed from the app using JNI bindings. Currently, there are JNI calls for generating public and private key pairs, computing and distributing key shares used in the sign rounds, as well as signature verifications. Furthermore, the peers can exchange public keys and keys shares with the IPv8 overlay.
 
-<img src="frost/src/img/frost.jpeg" height="400px">
+<img src="frost/src/img/frost_gif.gif" height="400px">
 
 From the FROST app menu a user can join the FROST community which will generate a public/private key pair and share the public key with the community. In response, the peers will also broadcast their public key, which can be viewed by pressing REFRESH SIGNERS. Furthermore, SEND SHARES will generate key shares and broadcast them, while REFRESH SHARES shows the IP of the peer who distributed the shares (on the receiving end).
 
