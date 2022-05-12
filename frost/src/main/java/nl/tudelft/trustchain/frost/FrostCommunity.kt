@@ -167,10 +167,8 @@ class FrostCommunity(private val context: Context,
         // create a list of all peers
         val list = mutableListOf<Peer>()
         for(signer in this.signers){
-//            if( signer != this.signers[i]){
-                val peerAddress = signer.ip
-                list.add(getPeerFromIP(peerAddress)!!)
-//            }
+            val peerAddress = signer.ip
+            list.add(getPeerFromIP(peerAddress)!!)
         }
 
         // loop over res and distribute the shares
@@ -227,8 +225,16 @@ class FrostCommunity(private val context: Context,
 
         // also add to a local file which is used when printing
         val ackBuffer = readFile(this.context,"received_shares.txt")
-        val newBuffer = "$ackBuffer \n ${peer.address}"
-        writeToFile(this.context, "received_shares.txt", newBuffer)
+
+        // remove duplicates (since we also send the shares to ourselves)
+        val splitList = ackBuffer?.split("\n")
+        val list = splitList?.toTypedArray()
+        val uniqueList = list?.toSet()?.toList()
+        val uniqueBuffer = uniqueList?.joinToString("\n")
+
+        if (uniqueBuffer != null) {
+            writeToFile(this.context, "received_shares.txt", "$uniqueBuffer \n ${peer.address}")
+        }
 
         // confirm that the received key share arrived
         ackKey(peer, keyShare)
@@ -266,6 +272,7 @@ class FrostCommunity(private val context: Context,
 
     /**
      * Call receiveFrost.
+     * !! This does not work yet!!
      */
     fun receiveFrost(){
         val i = getIndexOfSigner(myPeer.address.ip)

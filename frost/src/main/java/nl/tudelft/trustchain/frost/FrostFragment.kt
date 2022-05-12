@@ -80,12 +80,5 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
             val keyshares = getFrostCommunity().getKeyshares()
             changeText(text_button_4, "Received shares from: \n variable: $keyshares \n file: $text")
         }
-        // call receive frost
-        button5.setOnClickListener {
-            Log.i("FROST", "FROST received")
-            getFrostCommunity().receiveFrost()
-            changeText(text_button_5, "FrostDone")
-
-        }
     }
 }
