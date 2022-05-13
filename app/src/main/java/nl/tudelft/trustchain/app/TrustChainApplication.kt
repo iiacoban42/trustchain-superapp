@@ -282,7 +282,7 @@ class TrustChainApplication : Application() {
     private fun createFrostCommunity(): OverlayConfiguration<FrostCommunity> {
         val randomWalk = RandomWalk.Factory()
         return OverlayConfiguration(
-            FrostCommunity.Factory(this, mutableListOf(), mutableListOf(), FrostSecret()),
+            FrostCommunity.Factory(this, mutableListOf(), mutableMapOf<Int, ByteArray>(), FrostSecret()),
             listOf(randomWalk)
         )
     }

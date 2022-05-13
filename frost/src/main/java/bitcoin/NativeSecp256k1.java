@@ -522,7 +522,8 @@ public class NativeSecp256k1 {
 
 
     public static void receiveFrost(byte[][] shares, FrostSecret secret, FrostSigner[] signer, int index){
-        receive_commitments(shares, secret, signer, index, Secp256k1Context.getContext());
+        long context = Secp256k1Context.getContext();
+        receive_commitments(shares, secret, signer, index, context);
     }
     private static native long secp256k1_ctx_clone(long context);
 

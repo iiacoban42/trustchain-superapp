@@ -63,27 +63,22 @@ class FrostFragment : BaseFragment(R.layout.fragment_frost) {
             changeText(text_button_2, "")
             getFrostCommunity().createShares()
         }
-        // view who sent key shares
+        // view signers and their public keys
         button3.setOnClickListener {
             changeText(text_button_3, "")
             val signers = getFrostCommunity().getSignersWithKeys()
             Log.i("FROST", signers)
-            changeText(text_button_3, "Known signers/keys: \n $signers")
+            val sig = getFrostCommunity().getSigners()
+            changeText(text_button_3, "Known signers/keys: variable: $sig \n file: $signers")
         }
-        // view who acked my key shares
+        // view who acked my private key shares
         button4.setOnClickListener {
             changeText(text_button_4, "")
             val shares = readFile(this.context, "received_shares.txt")
             val text = "$shares"
             Log.i("FROST", text)
-            changeText(text_button_4, "Received shares from: \n $text")
-        }
-        // call receive frost
-        button5.setOnClickListener {
-            Log.i("FROST", "FROST received")
-            getFrostCommunity().receiveFrost()
-            changeText(text_button_5, "FrostDone")
-
+            val keyshares = getFrostCommunity().getKeyshares()
+            changeText(text_button_4, "Received shares from: \n variable: $keyshares \n file: $text")
         }
     }
 }
