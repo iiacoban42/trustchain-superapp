@@ -160,24 +160,12 @@ The feature-based models are gossiped along random walks through the network. At
 
 The FROST app aims to create a fully decentralized DAO which enables joint ownership of Bitcoin funds which can be spent by participating in a k-out-of-n Schnorr signature.
 
-## Overview
- 
-The app integrates the Flexible Round-Optimized Schnorr Threshold (FROST) Signatures algorithm presented [in this paper](https://eprint.iacr.org/2020/852.pdf) with the IPv8 overlay. The FROST algorithm is implemented in the following [library](https://github.com/OrestisKan/secp256k1-zkp-jni): which is compiled as an `.so` file and accessed from the app using JNI bindings. Currently, there are JNI calls for generating public and private key pairs, computing and distributing key shares used in the sign rounds, as well as signature verifications. Furthermore, the peers can exchange public keys and key shares with the IPv8 overlay.
-
-The FROST algorithm primitive cryptographic operations are implemented in the `secp256k1` library in native code, and exposed to the `BitcoinJ` library through JNI. This extension of `BitcoinJ` allows for setting up public/private keys for `N` participants in two rounds of communication, signing a message by a subset of size `T` out of them in two rounds of communication, and verifying a `T-out-of-N` signature with a unique aggregated public key.
-
-## Functionality
+The FROST algorithm primitive cryptographic operations are implemented in the `secp256k1` library in native code, and exposed to the `BitcoinJ` library [through JNI](https://github.com/OrestisKan/bitcoinj-frost/blob/91b74783de9bd1e1f5bb69749197987d79b9bb7d/core/src/main/java/org/bitcoin/NativeSecp256k1.java#L586). This extension of `BitcoinJ` allows for setting up public/private keys for `N` participants in two rounds of communication, signing a message by a subset of size `T` out of them in two rounds of communication, and verifying a `T-out-of-N` signature with a unique aggregated public key.
  
 The FROST android app serves to demonstrate the potential use of the FROST algorithm on android devices. Through a series of button clicks, the user can initiate the key-generation protocol and perform the first round of communication needed to set up the scheme. The user can see on their screen the intermediate results of public/private variables broadcast to/from their peers. As the end goal is to allow for joint ownership of Bitcoin for communities in the Music DAO, for the purpose of decentralized, democratic control over resources, the FROST app requires plenty additional work to achieve its end goal. Having a user manually perform the algorithmic steps of key distribution is thus only interesting for debugging and demonstrative purposes.
  
  <img src="frost/src/img/frost_gif.gif" height="400px">
  
-The next development step to take for the FROST app are to automate the key generation mechanism, while only exposing to the user functionality such as initiating the creation of a community, joining one, and accepting users to a community. Afterwards, a user of a community should be able to initiate and vote on proposals, which would internally correspond to initiating the signing procedure, requesting partial signatures from peers in the community, and aggregating the signatures to be able to spend the money on the proposal.
-
-
- 
-
-
 ### Do you want to add your own app?
 
 - [Adding your own app to the TrustChain Super App](doc/AppTutorial.md)
