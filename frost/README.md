@@ -1,5 +1,5 @@
 
-### FROST app
+# FROST app
 
 The FROST app aims to create a fully decentralized DAO which enables joint ownership of Bitcoin funds which can be spent by participating in a k-out-of-n Schnorr signature.
 
@@ -24,3 +24,6 @@ The next development step to take for the FROST app are to automate the key gene
 These buttons must be pressed in the order given above (JOIN FROST can be pressed by only 1 peer, but more peers pressing it should not cause issues, while SEND SHARES will recreate the shares and send them again, which might not be ideal, so it is advised to only press once per peer to ensure consistency). A future implementation might use acks to verify when steps are done so that only one of the peers would have to press the button once and the others would only be notified to vote to contribute to the signature if they wanted to.
 
 The buttons implemented follow the structure of the `testKeyCreationAndAggregation` method which can be found [here](https://github.com/OrestisKan/bitcoinj-frost/blob/91b74783de9bd1e1f5bb69749197987d79b9bb7d/core/src/test/java/org/bitcoinj/core/ECKeyTest.java#L550) and checks that all the relevant JNI calls are executed correctly in a localized environment (i.e. on the same device). IPv8 is used to move this execution into a distributed environment, but the current progress stops roughly at line 628, where `receiveFrost` would be called. We suspect that, since the JNI calls themselves work locally, there is either an issue with the input provided or with the variables saved in memory (which could be caused by the serialization/deserialization of data needed to send it through IPv8, for which the code is in `src/main/java/nl/tudelft/trustchain/frost/FrostSignerPacket.kt`)
+
+## Limitations
+
