@@ -14,7 +14,7 @@ The FROST android app serves to demonstrate the potential use of the FROST algor
  
 The next development step to take for the FROST app are to automate the key generation mechanism, while only exposing to the user functionality such as initiating the creation of a community, joining one, and accepting users to a community. Afterwards, a user of a community should be able to initiate and vote on proposals, which would internally correspond to initiating the signing procedure, requesting partial signatures from peers in the community, and aggregating the signatures to be able to spend the money on the proposal.
 
-<img src="frost/src/img/frost_gif.gif" height="400px">
+<img src="src/img/frost_gif.gif" height="400px">
  
 - JOIN FROST: initiates the process by creating a signer for this peer (peerA). A signer is an object that, among other things, contains a public key. This signer is broadcast to all the peers in the FrostCommunity. When another peer (peerB) receives the signer from peerA, it creates its own signer and broadcasts it to everyone in the FrostCommunity if it hasn't already created a signer before.
 - REFRESH SIGNERS: the peer's own signer and the signers received from other peers are saved in a local variable and their IPs and public keys are also saved in a file in memory so that they can easily be displayed on the screen when this button is pressed.
